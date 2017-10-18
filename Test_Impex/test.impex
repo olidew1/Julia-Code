@@ -1,0 +1,54 @@
+# USE CTRL-SPACE for type-ahead support
+
+# ImpEx for Importing Products and Media into Powertools Store
+
+# Macros / Replacement Parameter definitions
+$productCatalog=powertoolsProductCatalog
+$productCatalogName=Powertools Product Catalog
+$catalogVersion=catalogversion(catalog(id[default=$productCatalog]),version[default=’Online’])[unique=true,default=$productCatalog:Online]
+
+#Path where the images are present
+$siteResource=jar:com.karmaparts.initialdata.setup.KarmapartsInitialdataDataSystemSetup&/karmapartsinitialdata/import/sampledata/productCatalogs
+
+$thumbnail=thumbnail(code, $catalogVersion)
+$picture=picture(code, $catalogVersion)
+$thumbnails=thumbnails(code, $catalogVersion)
+$detail=detail(code, $catalogVersion)
+$normal=normal(code, $catalogVersion)
+$others=others(code, $catalogVersion)
+$medias=medias(code, $catalogVersion)
+$galleryImages=galleryImages(qualifier, $catalogVersion)
+
+$supercategories=supercategories(code, $catalogVersion)
+$baseProduct=baseProduct(code,$catalogVersion)
+$taxGroup=Europe1PriceFactory_PTG(code)[default=us-sales-tax-full]
+$prices=Europe1prices[translator=de.hybris.platform.europe1.jalo.impex.Europe1PricesTranslator]
+
+# Set product approval status to Approved only for those products that have prices. WHY?
+$approved=approvalstatus(code)[default=’approved’]
+
+# Language
+$lang=en
+
+#Create the medias
+INSERT_UPDATE Media;mediaFormat(qualifier);code[unique=true];@media[translator=de.hybris.platform.impex.jalo.media.MediaDataTranslator];mime[default=’image/jpg’];$catalogVersion;folder(qualifier)[default=images]
+;1200Wx1200H;test_1200x1200;$siteResource/images/media/test_1200x1200.jpg
+;515Wx515H;test_515x515;$siteResource/images/media/test_515x515.jpg
+;300Wx300H;test_300x300;$siteResource/images/media/test_300x300.jpg
+;96Wx96H;test_96x96;$siteResource/images/media/test_96x96.jpg
+;65Wx65H;test_65x65;$siteResource/images/media/test_65x65.jpg
+;30Wx30H;test_30x30;$siteResource/images/media/test_30x30.jpg
+
+# Create the media containers
+INSERT_UPDATE MediaContainer;qualifier[unique=true];medias(code);$catalogVersion
+;Media_Container_Test_Pro;test_1200x1200,test_515x515,test_300x300,test_96x96,test_65x65,test_30x30
+
+# Insert the Product
+INSERT_UPDATE Product;code[unique=true];supercategories(code);manufacturerName;manufacturerAID;ean;variantType(code);unit(code)[default=pieces];name[lang=$lang];description[lang=$lang];summary[lang=$lang];$prices;$approved;$taxGroup;$catalogVersion
+;Test_Pro;;test;;;;;TEST PRODUCT;TEST PRODUCT;;1 pieces = 1 USD N
+
+#Link the product to the media container/medias
+INSERT_UPDATE Product;code[unique=true];$picture;$thumbnail;$detail;$others;$normal;$thumbnails;$galleryImages;$catalogVersion
+;Test_Pro;test_300x300;test_96x96;test_1200x1200;test_515x515,test_65x65,test_30x30;test_300x300;test_96x96;Media_Container_Test_Pro
+
+################## File End ##########################
